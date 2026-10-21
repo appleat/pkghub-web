@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.AppName}} · 软件包管理系统</title>
+  <meta name="description" content="基于 Go + SQLite 的轻量级软件包管理系统，支持多版本上传下载、分类管理与用户管理。">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/static/app.css">
+  <script>
+    (function () {
+      var saved = localStorage.getItem('pkghub-theme');
+      var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+</head>
+<body data-app="{{.AppName}}" data-version="{{.Version}}" data-max-mb="{{.MaxMB}}">
+  <div id="app">
+    <div class="login-wrap">
+      <div class="card" style="padding:40px;text-align:center;max-width:420px;margin:auto;box-shadow:var(--shadow-sm);border:1px solid var(--border)">
+        <span class="spinner"></span>
+        <div class="muted small">正在加载 {{.AppName}} …</div>
+      </div>
+    </div>
+  </div>
+  <div id="modal-root"></div>
+  <div id="toast-container"></div>
+  <noscript>
+    <div style="padding:24px;text-align:center">本页面需要启用 JavaScript 才能使用。</div>
+  </noscript>
+  <script src="/static/app.js"></script>
+</body>
+</html>

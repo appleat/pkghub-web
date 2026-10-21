@@ -1,0 +1,17 @@
+# 编译产物
+pkghub
+pkghub.exe
+pkghub-*
+*.exe
+dist/
+
+# 运行时数据与临时目录
+data/
+.smoke/
+config.toml
+
+# 本地临时笔记
+build..txt
+
+# 日志
+*.log
