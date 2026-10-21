@@ -32,6 +32,18 @@ const state = {
 
 /* ---------------- 工具函数 ---------------- */
 
+// isAdmin 当前登录用户是否为管理员（新增/编辑软件包、分类与用户管理仅管理员可用）。
+function isAdmin() {
+  return !!(state.me && state.me.role === 'admin');
+}
+
+// requireAdmin 非管理员时给出提示并返回 false，用于动作层二次防护。
+function requireAdmin(action) {
+  if (isAdmin()) return true;
+  toast('没有权限', '仅管理员可以' + action, 'error');
+  return false;
+}
+
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -499,7 +511,7 @@ async function viewPackages() {
         <button data-action="set-view" data-view="card" class="${view === 'card' ? 'active' : ''}">▦ 卡片</button>
         <button data-action="set-view" data-view="list" class="${view === 'list' ? 'active' : ''}">☰ 列表</button>
       </div>
-      <button class="btn btn-primary" data-action="new-package">＋ 新建软件包</button>
+      ${isAdmin() ? '<button class="btn btn-primary" data-action="new-package">＋ 新建软件包</button>' : ''}
     </div>
     <div class="chips mb-16">
       <button class="chip ${category === 0 ? 'active' : ''}" data-action="filter-cat" data-id="0">全部</button>
@@ -523,7 +535,8 @@ function pkgResultHTML() {
   if (!data) return '';
   const { page, pageSize, keyword, view } = state.pkgs;
   if (!data.items.length) {
-    return emptyBox('📦', '没有找到软件包', keyword ? '试试其他关键词' : '点击右上角新建一个软件包');
+    const hint = keyword ? '试试其他关键词' : (isAdmin() ? '点击右上角新建一个软件包' : '请联系管理员创建软件包');
+    return emptyBox('📦', '没有找到软件包', hint);
   }
   const pages = Math.max(1, Math.ceil(data.total / pageSize));
   const body = view === 'list'
@@ -629,8 +642,8 @@ async function viewPackageDetail(id) {
         </div>
         <div class="actions">
           ${p.latest_version ? `<button class="btn btn-primary" data-action="download-latest" data-id="${p.id}">⬇️ 下载最新版</button>` : ''}
-          ${canManage ? `<button class="btn" data-action="edit-package" data-id="${p.id}">✏️ 编辑</button>
-          <button class="btn btn-danger" data-action="delete-package" data-id="${p.id}">🗑️ 删除</button>` : ''}
+          ${isAdmin() ? `<button class="btn" data-action="edit-package" data-id="${p.id}">✏️ 编辑</button>` : ''}
+          ${canManage ? `<button class="btn btn-danger" data-action="delete-package" data-id="${p.id}">🗑️ 删除</button>` : ''}
         </div>
       </div>
       <div class="kv-grid">
@@ -914,8 +927,14 @@ const ACTIONS = {
       route();
     } catch (err) { toast('删除失败', err.message, 'error'); }
   },
-  'new-package'() { packageDialog(); },
-  'edit-package'(el) { packageDialog(el.dataset.id); },
+  'new-package'() {
+    if (!requireAdmin('新增软件包')) return;
+    packageDialog();
+  },
+  'edit-package'(el) {
+    if (!requireAdmin('编辑软件包')) return;
+    packageDialog(el.dataset.id);
+  },
   async 'delete-package'(el) {
     const okd = await confirmBox('删除软件包', '将同时删除该软件包下的所有版本文件，确定继续吗？', '删除', true);
     if (!okd) return;
@@ -1034,6 +1053,7 @@ function bindColors(mask) {
 }
 
 async function packageDialog(id) {
+  if (!requireAdmin(id ? '编辑软件包' : '新增软件包')) return;
   let pkg = null;
   if (id) pkg = await api('/api/packages/' + id).then((d) => d.package);
   if (!state.categories.length) {

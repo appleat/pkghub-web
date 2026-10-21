@@ -84,11 +84,11 @@ func (s *Server) routes() {
 	mux.HandleFunc("PUT /api/categories/{id}", s.requireAdmin(s.updateCategory))
 	mux.HandleFunc("DELETE /api/categories/{id}", s.requireAdmin(s.deleteCategory))
 
-	// 软件包
+	// 软件包（新增与编辑仅管理员可用，普通用户只能浏览、下载与上传版本）
 	mux.HandleFunc("GET /api/packages", s.requireAuth(s.listPackages))
-	mux.HandleFunc("POST /api/packages", s.requireAuth(s.createPackage))
+	mux.HandleFunc("POST /api/packages", s.requireAdmin(s.createPackage))
 	mux.HandleFunc("GET /api/packages/{id}", s.requireAuth(s.getPackage))
-	mux.HandleFunc("PUT /api/packages/{id}", s.requireAuth(s.updatePackage))
+	mux.HandleFunc("PUT /api/packages/{id}", s.requireAdmin(s.updatePackage))
 	mux.HandleFunc("DELETE /api/packages/{id}", s.requireAuth(s.deletePackage))
 	mux.HandleFunc("GET /api/packages/{id}/versions", s.requireAuth(s.listVersions))
 	mux.HandleFunc("POST /api/packages/{id}/versions", s.requireAuth(s.uploadVersion))
